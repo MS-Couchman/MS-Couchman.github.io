@@ -48,6 +48,12 @@
             animation: rise-in 400ms ease-out;
         }
 
+        .page-title {
+            margin: 0 0 14px;
+            text-align: center;
+            font-size: clamp(1.8rem, 5vw, 2.6rem);
+        }
+
         .hero-image-wrap {
             display: flex;
             justify-content: center;
@@ -60,6 +66,28 @@
             border-radius: 16px;
             border: 15px solid #ffffff;
             display: block;
+        }
+
+        .contact-me {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px 18px;
+            margin-top: 14px;
+        }
+
+        .contact-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .contact-item img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            border-radius: 5px;
         }
 
         .section {
@@ -379,9 +407,23 @@
 <body>
     <main class="page">
         <section class="hero">
+            <h1 class="page-title">Offer Links</h1>
             <div class="hero-image-wrap" id="hero-image-wrap">
                 <img class="hero-image" src="https://placehold.co/600x400" alt="img"
                     onerror="document.getElementById('hero-image-wrap').style.display='none'">
+            </div>
+            <div class="contact-me">
+                <span class="contact-item">
+                    <button class="reveal-email" data-email-key="default">show email</button>
+                </span>
+                <a class="contact-item" href="https://www.reddit.com/" target="_blank" rel="noopener noreferrer">
+                    <img src="https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png" alt="">
+                    <span>u/Name</span>
+                </a>
+                <span class="contact-item">
+                    <img src="https://cdn.simpleicons.org/discord/5865F2" alt="">
+                    <span>Discordname</span>
+                </span>
             </div>
         </section>
         <div id="content" class="message">Loading offers...</div>
@@ -838,6 +880,19 @@
             } else {
                 showError("Unable to load embedded offer data JSON.");
             }
+
+            document.querySelectorAll("button[data-email-key]").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    const encoded = emailsMap[button.dataset.emailKey] || "";
+                    if (!encoded) {
+                        return;
+                    }
+                    const email = atob(encoded);
+                    const link = createElement("a", null, email);
+                    link.href = "mailto:" + email;
+                    button.parentNode.replaceChild(link, button);
+                });
+            });
         });
 
         document.addEventListener("click", function (event) {
@@ -856,7 +911,7 @@
     <script id="offers-data" type="application/json">
 {
     "emails": {
-        "default": "YUBhLmE="
+        "default": "QUFfYWFhYWFhYWFAb3V0bG9vay5jb20="
     },
     "sections": [
         {
