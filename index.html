@@ -87,6 +87,62 @@
             padding: 14px;
         }
 
+        .offer-layout {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 14px;
+            align-items: start;
+        }
+
+        .offer-layout:not(.has-thumbnail)::before {
+            content: "";
+            width: min(150px, 24vw);
+            aspect-ratio: 1;
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .offer-thumbnail {
+            width: min(150px, 24vw);
+            aspect-ratio: 1;
+            object-fit: cover;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            display: block;
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .offer-content {
+            min-width: 0;
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .offer-layout.has-thumbnail .offer-content {
+            grid-column: 2;
+        }
+
+        .offer-layout:not(.has-thumbnail) .offer-content {
+            grid-column: 2;
+        }
+
+        .offer-images {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-top: 12px;
+        }
+
+        .offer-images img {
+            width: 120px;
+            height: 84px;
+            flex: 0 0 auto;
+            object-fit: cover;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
         .site-title {
             margin: 0 0 10px;
             font-size: 1.24rem;
@@ -287,6 +343,31 @@
                 padding: 12px;
             }
 
+            .offer-layout {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 10px;
+            }
+
+            .offer-layout:not(.has-thumbnail)::before {
+                display: none;
+            }
+
+            .offer-thumbnail {
+                width: 82px;
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            .offer-layout.has-thumbnail .offer-content {
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            .offer-layout:not(.has-thumbnail) .offer-content {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
             .portal-offers {
                 margin-left: 8px;
                 padding-left: 8px;
@@ -299,7 +380,7 @@
     <main class="page">
         <section class="hero">
             <div class="hero-image-wrap" id="hero-image-wrap">
-                <img class="hero-image" src="img.jpg" alt="img"
+                <img class="hero-image" src="https://placehold.co/600x400" alt="img"
                     onerror="document.getElementById('hero-image-wrap').style.display='none'">
             </div>
         </section>
@@ -552,6 +633,8 @@
 
         function createOfferItem(offer) {
             const item = createElement("li", "offer");
+            const layout = createElement("div", "offer-layout");
+            const content = createElement("div", "offer-content");
             const topLine = createElement("div", "offer-topline");
 
             const amount = createElement("span", "amount", offer.amount || "");
@@ -584,7 +667,7 @@
                 topLine.appendChild(tag);
             }
 
-            item.appendChild(topLine);
+            content.appendChild(topLine);
 
             const requirements = Array.isArray(offer.requirements) ? offer.requirements : (offer.requirements ? [offer.requirements] : []);
 
@@ -608,13 +691,13 @@
                     });
                     requirementsEl.appendChild(list);
                 }
-                item.appendChild(requirementsEl);
+                content.appendChild(requirementsEl);
             }
 
             collectOfferBlocks(offer).forEach(function (block) {
                 const blockEl = createBlock(block);
                 if (blockEl) {
-                    item.appendChild(blockEl);
+                    content.appendChild(blockEl);
                 }
             });
 
@@ -626,7 +709,7 @@
                 link.href = offer.terms;
                 emphasis.appendChild(link);
                 terms.appendChild(emphasis);
-                item.appendChild(terms);
+                content.appendChild(terms);
             }
 
             if (offer.links && offer.links.length > 0) {
@@ -638,9 +721,48 @@
                     link.dataset.gc = offerId + "-" + slugify(platformLink.label);
                     links.appendChild(link);
                 });
-                item.appendChild(links);
+                content.appendChild(links);
             }
 
+            layout.appendChild(content);
+
+            if (offer.thumbnail) {
+                const thumbnailData = typeof offer.thumbnail === "string" ? { url: offer.thumbnail } : offer.thumbnail;
+                if (thumbnailData && thumbnailData.url) {
+                    layout.classList.add("has-thumbnail");
+                    const thumbnail = createElement("img", "offer-thumbnail");
+                    thumbnail.src = thumbnailData.url;
+                    thumbnail.alt = thumbnailData.alt || offer.name || "";
+                    if (offer.url) {
+                        const thumbnailLink = createElement("a");
+                        thumbnailLink.href = offer.url;
+                        thumbnailLink.dataset.gc = offerId;
+                        thumbnailLink.appendChild(thumbnail);
+                        layout.appendChild(thumbnailLink);
+                    } else {
+                        layout.appendChild(thumbnail);
+                    }
+                }
+            }
+
+            if (Array.isArray(offer.images) && offer.images.length > 0) {
+                const images = createElement("div", "offer-images");
+                offer.images.forEach(function (imageData) {
+                    const image = typeof imageData === "string" ? { url: imageData } : imageData;
+                    if (!image || !image.url) {
+                        return;
+                    }
+                    const imageElement = createElement("img");
+                    imageElement.src = image.url;
+                    imageElement.alt = image.alt || offer.name || "";
+                    images.appendChild(imageElement);
+                });
+                if (images.childElementCount > 0) {
+                    content.appendChild(images);
+                }
+            }
+
+            item.appendChild(layout);
             return item;
         }
 
@@ -744,8 +866,12 @@
                     "offers": [
                         {
                             "amount": "$$",
-                            "name": "Name",
-                             "url": "http://example.com/",
+                            "name": "Name name",
+                            "url": "http://example.com/",
+                            "thumbnail": "https://placehold.co/600x400",
+                            "images": [
+                                "https://placehold.co/600x400"
+                            ],
                             "requirements": "Reqs.",
                             "instructions": {
                                 "collapsible": true,
@@ -764,7 +890,33 @@
                                     "Two.",
                                     "Three."
                                 ]
-                            }
+                            },
+                             "terms": "https://example.com/"
+                        },
+                        {
+                            "amount": "$$",
+                            "name": "Name name",
+                            "url": "http://example.com/",
+                            "requirements": "Reqs.",
+                            "instructions": {
+                                "collapsible": true,
+                                "label": "Instructions",
+                                "steps": [
+                                    "One. [link](http://example.com/).",
+                                    "Two.",
+                                    "Three. Email [email]"
+                                ]
+                            },
+                            "details": {
+                                "collapsible": true,
+                                "label": "Important Notes",
+                                "items": [
+                                    "One.",
+                                    "Two.",
+                                    "Three."
+                                ]
+                            },
+                             "terms": "https://example.com/"
                         }
                     ]
                 }
